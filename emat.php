@@ -1,4 +1,5 @@
-<?php
+<?php namespace emat;
+
 require "Class/Settings.php";
 require "Class/Data.php";
 require "Class/Trade.php";
@@ -6,7 +7,7 @@ require "Class/Trade.php";
 // Only proceed when a settings file can be loaded.
 $settings = new Settings();
 $data = new Data();
-$trade = new Trade();
+$trade = new Trade($settings, $data);
 
 // Loop until the Trade class returns false.
 // When trading on paper, Trade::next() will return false when the historical

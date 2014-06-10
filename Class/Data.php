@@ -1,3 +1,5 @@
-<?php class Data {
+<?php namespace emat; class Data {
+
+
 
 }#
