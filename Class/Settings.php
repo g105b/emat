@@ -5,7 +5,46 @@
  */
 
 private $_filePath = "settings";
-private $_questions
+private $_conf = [
+	"APIKEY" => [
+		"description" => "API key",
+	],
+	"APISECRET" => [
+		"description" => "API secret",
+	],
+	"EXCHANGE" => [
+		"description" => "Exchange",
+		"default" => "BTCE",
+	],
+	"FREQ" => [
+		"description" => "Trade frequency (minutes)",
+		"default" => 60,
+	],
+	"EMASHORT" => [
+		"description" => "Short EMA",
+		"default" => 10,
+	],
+	"EMALONG" => [
+		"description" => "Long EMA",
+		"default" => 21
+	],
+	"WAIT" => [
+		"description" => "Period to check threshold before trade (minutes)",
+		"default" => 0,
+	],
+	"BUY" => [
+		"description" => "Buy threshold (%)",
+		"default" => 0.25,
+	],
+	"SELL" => [
+		"description" => "Sell threshold (%)",
+		"default" => 0.25,
+	],
+	"DRYRUN" => [
+		"description" => "Dry run (yes/no)",
+		"default" => "yes",
+	],
+];
 
 public function __construct() {
 	// Force absolute path
