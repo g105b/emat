@@ -12,7 +12,7 @@ $trade = new Trade();
 // When trading on paper, Trade::next() will return false when the historical
 // data ends. When trading for real, false will only be returned from a fatal
 // error.
-while(false !== ($tradeAction = $trade->next()) {
+while(false !== ($tradeAction = $trade->next()) ) {
 	fwrite(STDOUT, $tradeAction);
 }
 
