@@ -18,31 +18,38 @@ private $_conf = [
 	],
 	"FREQ" => [
 		"description" => "Trade frequency (minutes)",
+		"type" => "integer",
 		"default" => 60,
 	],
 	"EMASHORT" => [
 		"description" => "Short EMA",
+		"type" => "integer",
 		"default" => 10,
 	],
 	"EMALONG" => [
 		"description" => "Long EMA",
+		"type" => "integer",
 		"default" => 21
 	],
 	"WAIT" => [
 		"description" => "Period to check threshold before trade (minutes)",
+		"type" => "number",
 		"default" => 0,
 	],
 	"BUY" => [
 		"description" => "Buy threshold (%)",
+		"type" => "number",
 		"default" => 0.25,
 	],
 	"SELL" => [
 		"description" => "Sell threshold (%)",
+		"type" => "number",
 		"default" => 0.25,
 	],
 	"DRYRUN" => [
 		"description" => "Dry run (yes/no)",
-		"default" => "yes",
+		"type" => "bool",
+		"default" => true,
 	],
 ];
 
@@ -66,7 +73,25 @@ private function create() {
 			$prompt .= "[" . $details["default"] . "] ";
 		}
 
-		$details["value"] = readline($prompt);
+		$prompt .= ": ";
+
+		while(!isset($details["value"])) {
+			$input = trim(readline($prompt));
+
+			if(strlen($input) > 0) {
+				$details["value"] = $input;
+			}
+			else if(isset($details["default"])) {
+				$details["value"] = $details["default"];
+				fwrite(
+					STDOUT, 
+					"Using default value, " . $details["default"] . PHP_EOL
+				);
+			}
+			else {
+				fwrite(STDOUT, "Required parameter!" . PHP_EOL);
+			}
+		}
 	}
 }
 
