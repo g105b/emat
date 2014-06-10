@@ -59,7 +59,15 @@ public function __construct() {
  * Asks user for all required information, serialises to settings file.
  */
 private function create() {
+	foreach ($this->_conf as $code => $details) {
+		$prompt = $details["description"] . " ";
+		
+		if(isset($details["default"])) {
+			$prompt .= "[" . $details["default"] . "] ";
+		}
 
+		$details["value"] = readline($prompt);
+	}
 }
 
 }#
