@@ -57,9 +57,37 @@ public function __construct() {
 	// Force absolute path
 	$this->_filePath = dirname(__DIR__) . "/" . $this->_filePath;
 
-	if(!is_file($this->_filePath)) {
-		$this->create();
+	$correct = false;
+	if(is_file($this->_filePath)) {
+		// Attempt to load settings file.
+		$this->load();
+		// Ask user if they want to use loaded data.
+		$correct = $this->check();
 	}
+	
+	// Take new settings configuration until user confirms they are correct.
+	while(!$correct) {
+		if(!$correct) {
+			$this->create();			
+			$correct = $this->check();
+		}
+	}
+}
+
+/**
+ * Displays all configuration to user, asks for confirmation.
+ */
+private function check() {
+	foreach ($this->_conf as $code => $details) {
+		fwrite(STDOUT, 
+			str_pad($code, 12, " ", STR_PAD_LEFT)
+			. ": "
+			. $details["value"]
+			. PHP_EOL
+		);
+	}
+	$input = readline("Use these settings? [yes/no]");
+	return (strtolower($input[0]) === "y");
 }
 
 /**
@@ -68,6 +96,7 @@ public function __construct() {
 private function create() {
 	// Loop over every conf variable.
 	foreach ($this->_conf as $code => $details) {
+		unset($this->_conf[$code]["value"]);
 		$prompt = $details["description"] . " ";
 		
 		// If there is a default value, display to user.
@@ -78,7 +107,7 @@ private function create() {
 		$prompt .= ": ";
 
 		// Only progress when value is set (from user input or default).
-		while(!isset($details["value"])) {
+		while(!isset($this->_conf[$code]["value"])) {
 			$input = trim(readline($prompt));
 
 			// If user input is given and datatype is allowed, store value.
@@ -88,22 +117,22 @@ private function create() {
 					switch($details["type"]) {
 					case "number":
 						if(is_numeric($input)) {
-							$details["value"] = (double)$input;
+							$this->_conf[$code]["value"] = (double)$input;
 						}
 						break;
 					case "int":
 					case "integer":
 						if(ctype_digit($input)) {
-							$details["value"] = (int)$input;
+							$this->_conf[$code]["value"] = (int)$input;
 						}
 						break;
 					case "bool":
 					case "boolean":
 						if(strtolower($input[0]) == "y") {
-							$details["value"] = true;
+							$this->_conf[$code]["value"] = true;
 						}
 						else if(strtolower($input[0]) == "n") {
-							$details["value"] = false;
+							$this->_conf[$code]["value"] = false;
 						}
 						break;
 					}
@@ -121,7 +150,7 @@ private function create() {
 				}
 				else {
 					// No type check required (string input allowed).
-					$details["value"] = $input;					
+					$this->_conf[$code]["value"] = $input;					
 				}
 			}
 			else if(isset($details["default"])) {
@@ -130,10 +159,11 @@ private function create() {
 				&& ($details["type"] == "bool" 
 				|| $details["type"] == "boolean")
 				&& is_string($details["default"])) {
-					$details["value"] = ($details["default"] == "yes");
+					$this->_conf[$code]["value"] = 
+						($details["default"] == "yes");
 				}
 				else {
-					$details["value"] = $details["default"];
+					$this->_conf[$code]["value"] = $details["default"];
 				}
 
 				fwrite(
@@ -152,7 +182,22 @@ private function create() {
 }
 
 private function save() {
-	// TODO.
+	$fh = fopen($this->_filePath, "w");
+	foreach ($this->_conf as $code => $details) {
+		fwrite($fh, implode(" ", [$code, $details["value"]]) . PHP_EOL);
+	}
+	fclose($fh);
+}
+
+private function load() {
+	$fh = fopen($this->_filePath, "r");
+	while(false !== ($line = fgets($fh)) ) {
+		$data = explode(" ", $line, 2);
+		if(isset($this->_conf[$data[0]])) {
+			$this->_conf[$data[0]]["value"] = trim($data[1]);
+		}
+	}
+	fclose($fh);
 }
 
 }#
