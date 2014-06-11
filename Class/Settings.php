@@ -83,6 +83,22 @@ public function __construct() {
 }
 
 /**
+ * Expose configuration publicly.
+ */
+public function get($key) {
+	if(isset($this->_conf[$key])) {
+		if(isset($this->_conf[$key]["value"])) {
+			return $this->_conf[$key]["value"];			
+		}
+		else {
+			return $this->_conf[$key]["default"];
+		}
+	}
+
+	return null;
+}
+
+/**
  * Displays all configuration to user, asks for confirmation.
  */
 private function check() {
