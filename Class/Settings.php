@@ -14,7 +14,7 @@ private $_conf = [
 	],
 	"EXCHANGE" => [
 		"description" => "Exchange",
-		"default" => "BTCE",
+		"default" => "btc-e",
 	],
 	"FREQ" => [
 		"description" => "Trade frequency (minutes)",
@@ -45,6 +45,14 @@ private $_conf = [
 		"description" => "Sell threshold (%)",
 		"type" => "number",
 		"default" => 0.25,
+	],
+	"DATA" => [
+		"description" => "Historic data directory",
+		"default" => "Data",
+	],
+	"DATAREFRESH" => [
+		"description" => "Attempt automatic data refresh? (yes/no)",
+		"default" => "no"
 	],
 	"DRYRUN" => [
 		"description" => "Dry run (yes/no)",
@@ -82,7 +90,7 @@ private function check() {
 		fwrite(STDOUT, 
 			str_pad($code, 12, " ", STR_PAD_LEFT)
 			. ": "
-			. $details["value"]
+			. (isset($details["value"]) ? $details["value"] : "")
 			. PHP_EOL
 		);
 	}
@@ -193,6 +201,11 @@ private function load() {
 	$fh = fopen($this->_filePath, "r");
 	while(false !== ($line = fgets($fh)) ) {
 		$data = explode(" ", $line, 2);
+		var_dump($data);
+		// if(count($data) === 1) {
+		// 	$data[1] = "";
+		// }
+
 		if(isset($this->_conf[$data[0]])) {
 			$this->_conf[$data[0]]["value"] = trim($data[1]);
 		}
