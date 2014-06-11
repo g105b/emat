@@ -1,0 +1,3 @@
+#!/bin/bash
+# Pass all arguments to php script.
+php emat.php "$@"
