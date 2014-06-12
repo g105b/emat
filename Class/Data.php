@@ -78,14 +78,18 @@ private function refresh($pair) {
 	$dataFilePath = $this->_settings->get("data") 
 		. "/"
 		. $this->_settings->get("exchange")
-		. ".$pair";
+		. ".$pair.json";
+
+	if(!is_dir(dirname($dataFilePath))) {
+		mkdir(dirname($dataFilePath), 0775, true);
+	}
 
 	if(file_exists($dataFilePath)) {
 		$jsonFile = json_decode(file_get_contents($dataFilePath));
 		$last = end($jsonFile);
 		$dtValid = $this->buildDateTime($last[0]);
-		fwrite(STDOUT, "Data file valid up to" 
-			. $dtValid->format("Y-m-d") . PHP_EOL);		
+		fwrite(STDOUT, "Data file valid up to " 
+			. $dtValid->format("Y-m-d H:i:s") . PHP_EOL);		
 	}
 
 	$daysInvalid = $dt->diff($dtValid)->days;
@@ -113,7 +117,11 @@ private function refresh($pair) {
 	}
 
 	if($jsonFileDirty) {
+		fwrite(STDOUT, "Data file refreshed with new data." . PHP_EOL);
 		file_put_contents($dataFilePath, json_encode($jsonFile));
+	}
+	else {
+		fwrite(STDOUT, "Data file already up to date." . PHP_EOL);
 	}
 }
 
@@ -164,7 +172,7 @@ private function getJsonFromUrl($url, $dt, $pair) {
 		return $jsonFresh;
 	}
 
-	fwrite(STDOUT, "$pair not refreshed (no internet connection?)" . PHP_EOL);
+	fwrite(STDOUT, "No refresh for $pair." . PHP_EOL);
 	return [];
 }
 
