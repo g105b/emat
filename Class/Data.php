@@ -53,7 +53,7 @@ private $_dataFields = [
 
 public function __construct($settings) {
 	$this->_settings = $settings;
-	$this->_urlParts["query"]["market"] = $this->_settings["EXCHANGE"]["value"];
+	$this->_urlParts["query"]["market"] = $this->_settings->get("exchange");
 	$this->loadHistoryData();
 }
 
@@ -62,7 +62,7 @@ public function __construct($settings) {
  */
 private function loadHistoryData() {
 	foreach ($this->_currencyPairs as $pair) {
-		if($this->_settings["DATAREFRESH"]["value"] === true) {
+		if($this->_settings->get("dataRefresh") == true) {
 			$this->refresh($pair);
 		}
 	}
@@ -73,14 +73,12 @@ private function loadHistoryData() {
  * year's worth of fresh data.
  */
 private function refresh($pair) {
-	$dt = new DateTime();
-	$dtValid = new DateTime("-1 year");
-	$dataFilePath = $this->_settings["DATA"] 
+	$dt = new \DateTime();
+	$dtValid = new \DateTime("-1 year");
+	$dataFilePath = $this->_settings->get("data") 
 		. "/"
-		. $this->_settings["EXCHANGE"]
+		. $this->_settings->get("exchange")
 		. ".$pair";
-
-	fwrite(STDOUT, "Refreshing $pair..." . PHP_EOL);
 
 	if(file_exists($dataFilePath)) {
 		$jsonFile = json_decode(file_get_contents($dataFilePath));
@@ -103,13 +101,7 @@ private function refresh($pair) {
 		. "?"
 		. http_build_query($this->_urlParts["query"]);
 
-	$ch = curl_init();
-	curl_setopt_array($ch, [
-		CURLOPT_URL => $url,
-		CURLOPT_RETURNTRANSFER => true,
-	]);
-	$jsonFresh = json_decode(curl_exec($ch));
-	curl_exec($ch);
+	$jsonFresh = $this->getJsonFromUrl($url, $dt, $pair);
 
 	$jsonFileDirty = false;
 	foreach ($jsonFresh as $row) {
@@ -128,16 +120,52 @@ private function refresh($pair) {
 private function buildDateTime($string) {
 	$dateTimeString = substr($string, 0, 10);
 
-	if(strlen($last[0]) >= 13) {
+	if(strlen($string) >= 13) {
 		$dateTimeString .= " ";
-		$dateTimeString .= substr($last[0], 11, 2);
+		$dateTimeString .= substr($string, 11, 2);
 		$dateTimeString .= ":00:00";
 	}
 	else {
 		$dateTimeString .= " 00:00:00";
 	}
 	
-	return new DateTime($dateTimeString);
+	return new \DateTime($dateTimeString);
+}
+
+private function getJsonFromUrl($url, $dt, $pair) {
+	$invalidSeconds = $this->_settings->get("cachelength");
+	$invalidMTime = new \DateTime("-$invalidSeconds seconds");
+	$safeUrl = preg_replace("/(\/)/", "|", $url);
+	$filePath = $this->_settings->get("cache") . "/$safeUrl";
+
+	if(file_exists($filePath)
+	&& new \DateTime("@" . filemtime($filePath)) > $invalidMTime) {
+		fwrite(STDOUT, "$pair cache used." . PHP_EOL);
+		return json_decode(file_get_contents($filePath));
+	}
+
+	fwrite(STDOUT, "Refreshing $pair..." . PHP_EOL);
+	$ch = curl_init();
+	curl_setopt_array($ch, [
+		CURLOPT_URL => $url,
+		CURLOPT_RETURNTRANSFER => true,
+	]);
+	$data = curl_exec($ch);
+	curl_close($ch);
+
+	$jsonFresh = json_decode($data);
+
+	if(!empty($jsonFresh)) {
+		if(!is_dir(dirname($filePath)) ) {
+			mkdir(dirname($filePath), 0775, true);
+		}
+		file_put_contents($filePath, $data);
+
+		return $jsonFresh;
+	}
+
+	fwrite(STDOUT, "$pair not refreshed (no internet connection?)" . PHP_EOL);
+	return [];
 }
 
 }#
