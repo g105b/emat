@@ -56,13 +56,13 @@ private $_conf = [
 		"default" => "no"
 	],
 	"CACHE" => [
-		"Description" => "Data cache directory",
+		"description" => "Data cache directory",
 		"default" => "Cache",
 	],
 	"CACHELENGTH" => [
-		"Description" => "Data cache validity (seconds)",
+		"description" => "Data cache validity (seconds)",
 		"type" => "integer",
-		"default" => 259200, // (60 * 60 * 24 * 3) = 3 day validity
+		"default" => 3000, // 50 minutes validity
 	],
 	"DRYRUN" => [
 		"description" => "Dry run (yes/no)",
