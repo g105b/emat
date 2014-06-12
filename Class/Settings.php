@@ -52,7 +52,17 @@ private $_conf = [
 	],
 	"DATAREFRESH" => [
 		"description" => "Attempt automatic data refresh? (yes/no)",
+		"type" => "bool",
 		"default" => "no"
+	],
+	"CACHE" => [
+		"Description" => "Data cache directory",
+		"default" => "Cache",
+	],
+	"CACHELENGTH" => [
+		"Description" => "Data cache validity (seconds)",
+		"type" => "integer",
+		"default" => 259200, // (60 * 60 * 24 * 3) = 3 day validity
 	],
 	"DRYRUN" => [
 		"description" => "Dry run (yes/no)",
@@ -86,6 +96,7 @@ public function __construct() {
  * Expose configuration publicly.
  */
 public function get($key) {
+	$key = strtoupper($key);
 	if(isset($this->_conf[$key])) {
 		if(isset($this->_conf[$key]["value"])) {
 			return $this->_conf[$key]["value"];			
@@ -110,7 +121,11 @@ private function check() {
 			. PHP_EOL
 		);
 	}
-	$input = readline("Use these settings? [yes/no]");
+	$input = "";
+	while(strlen($input) === 0) {
+		$input = readline("Use these settings? [yes/no]");		
+	}
+
 	return (strtolower($input[0]) === "y");
 }
 
@@ -217,10 +232,6 @@ private function load() {
 	$fh = fopen($this->_filePath, "r");
 	while(false !== ($line = fgets($fh)) ) {
 		$data = explode(" ", $line, 2);
-		var_dump($data);
-		// if(count($data) === 1) {
-		// 	$data[1] = "";
-		// }
 
 		if(isset($this->_conf[$data[0]])) {
 			$this->_conf[$data[0]]["value"] = trim($data[1]);
